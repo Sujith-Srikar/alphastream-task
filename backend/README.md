@@ -12,10 +12,16 @@ project-root/
 │   │   ├── client.service.ts 
 │   │   └── index.ts              # exports all services
 │   │
+│   ├── repositories/             
+│   │   ├── entitlement.repository.ts
+│   │   ├── user.repository.ts
+│   │   ├── client.repository.ts
+│   │   └── index.ts              # central export of repositories
+│   │
 │   ├── dto/
 │   │   └── dto.ts                # all DTOs and types in one file
 │   │
-│   ├── data/
+│   ├── data/                     # mock in-memory data (to be replaced by DB later)
 │   │   ├── index.ts              # central export for mock data
 │   │   ├── user.ts
 │   │   ├── client.ts
@@ -30,4 +36,4 @@ project-root/
 ├── nest-cli.json                 # typical NestJS config
 ├── .eslintrc.js                  # linting
 ├── .prettierrc                   # formatting 
-└── README.md                     # project doc 
+└── README.md                     # project doc
