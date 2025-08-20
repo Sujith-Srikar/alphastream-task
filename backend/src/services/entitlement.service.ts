@@ -1,23 +1,24 @@
 import { Injectable } from "@nestjs/common";
-import {user, defaultEntitlement, entitlements} from "src/data/index"
+import { UserRepository, EntitlementRepository } from "src/repository";
 
 @Injectable()
 export class EntitlementService{
+    constructor(private readonly userRepo: UserRepository, private readonly entitlementRepo: EntitlementRepository){}
 
     getEffectiveEntitlements(userId: string){
-        const clientID = user.find(u => u.userId == userId)?.clientId;
+        const clientId = this.userRepo.getUserById(userId)?.clientId;
 
-        if(!clientID)
+        if(!clientId)
             return "There is no user with the corresponding UserID"
 
-        const userDefaultEntitlement = defaultEntitlement.userDefault;
-        const clientDefaultEntitlement = defaultEntitlement.clientDefault;
-        const modifiedUserEntitlement = entitlements.find(e => e.scopeId == userId)
-        const modifiedClientEntitlement = entitlements.find(e => e.scopeId == clientID)
+        const userDefaultEntitlement = this.entitlementRepo.getUserDefaultEntitlement();
+        const clientDefaultEntitlement = this.entitlementRepo.getClientDefaultEntitlement();
+        const modifiedUserEntitlement = this.entitlementRepo.getUserUpdatedEntitlement(userId);
+        const modifiedClientEntitlement = this.entitlementRepo.getClientUpdatedEntitlement(clientId);
 
         let res : any = {
             "userId": userId,
-            "clientId": clientID,
+            "clientId": clientId,
             "tabs": {}
         }
 

@@ -1,15 +1,17 @@
 import {Injectable} from "@nestjs/common"
-import {user, entitlements} from "src/data/index"
 import { entitlementDTO } from "src/dto/dto";
+import { UserRepository, EntitlementRepository } from "src/repository";
 
 @Injectable()
 export class UserService{
+    constructor(private readonly userRepo : UserRepository, private readonly entitlementRepo: EntitlementRepository){}
+    
     getAllUsers(){
-        return user;
+        return this.userRepo.getAll();
     }
 
     updateUserEntitlement(id: string, updatedData: entitlementDTO){
-        entitlements.push(updatedData);
+        this.entitlementRepo.updateUserEntitlement(id, updatedData);
         return "User Entitlement updated successfully!"
     }
 }

@@ -14,7 +14,7 @@ export class userDTO{
     clientId: string;
 }
 
-export class elientDTO{
+export class clientDTO{
 
     @IsString()
     clientId: string
