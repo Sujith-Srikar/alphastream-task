@@ -1,14 +1,20 @@
 import {IsArray, IsEnum, IsNotEmpty, IsObject, IsString} from "class-validator"
 
+export enum UserType {
+  NORMAL = "NORMAL",
+  ADMIN = "ADMIN",
+}
+
+
 export class userDTO{
     @IsString()
     userId: string;
 
     @IsString()
-    name: string
+    name: string;
 
-    @IsEnum(["NORMAL", "ADMIN"])
-    type: "NORMAL" | "ADMIN"
+    @IsEnum(UserType)
+    type: UserType;
 
     @IsString()
     clientId: string;
@@ -17,7 +23,7 @@ export class userDTO{
 export class clientDTO{
 
     @IsString()
-    clientId: string
+    clientId: string;
 
     @IsString()
     name: string;
@@ -30,16 +36,21 @@ export enum TabType{
   ValuationMemo = 'ValuationMemo',
 }
 
+export enum EntitlementScope {
+  USER = "USER",
+  CLIENT = "CLIENT",
+}
+
 export class entitlementDTO{
 
-    @IsEnum(["USER", "CLIENT"])
-    scope: "USER" | "CLIENT"
+    @IsEnum(EntitlementScope)
+    scope: EntitlementScope;
 
     @IsNotEmpty()
     scopeId: string;
 
     @IsEnum(TabType)
-    tab: TabType
+    tab: TabType;
 
     @IsArray()
     @IsString({each: true})
