@@ -1,3 +1,6 @@
-import SideBar from "./SideBar";
+import AppLayout from "./layout/AppLayout";
+import ActionButton from "./common/ActionButton";
+import Tables from "./tables/Tables";
+import NotAllowed from "./tables/NotAllowed";
 
-export {SideBar}
+export { AppLayout, ActionButton, Tables, NotAllowed}
