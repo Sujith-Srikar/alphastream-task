@@ -26,3 +26,9 @@ export interface EffectiveUserEntitlementResponse {
   clientId: string;
   tabs: Tabs;
 }
+
+export type FilterValue = string | string[] | { From: any; To: any };
+
+export type TablesProps = {
+  tabName: TabType;
+};
