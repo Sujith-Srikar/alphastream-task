@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { ddbDocClient } from "../config/dynamo.config";
 import { schemas } from "./schema";
 import {
-  CreateTableCommand,
   DeleteTableCommand,
 } from "@aws-sdk/client-dynamodb";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";

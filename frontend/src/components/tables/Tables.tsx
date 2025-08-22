@@ -31,11 +31,25 @@ function Tables({ tabName }: TablesProps) {
       {tabEntitlement.filters && (
         <Card title="Filters" size="small">
           <div className="flex flex-wrap gap-2">
-            {Object.entries(tabEntitlement.filters).map(([key, value]) => (
-              <Tag key={key} color="blue">
-                {key}: {value}
-              </Tag>
-            ))}
+            {Object.entries(tabEntitlement.filters).map(([key, value]) => {
+              let displayValue: string;
+
+              if (Array.isArray(value)) {
+                displayValue = value.join(", ");
+              } else if (typeof value === "object" && value !== null) {
+                const val: any = value; 
+                if ("From" in val && "To" in val) {
+                  displayValue = `From: ${val.From} To: ${val.To}`;
+                } else {
+                  displayValue = JSON.stringify(val);
+                }
+              } else {
+                displayValue = String(value);
+              }
+              return (<Tag key={key} color="blue">
+                {key}: {displayValue}
+              </Tag>)
+            })}
           </div>
         </Card>
       )}

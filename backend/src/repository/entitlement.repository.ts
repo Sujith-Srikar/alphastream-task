@@ -2,6 +2,7 @@ import { Injectable, Inject, InternalServerErrorException, NotFoundException, Ba
 import { entitlementDTO, EntitlementScope, TabEntitlementDTO, TabType } from "src/models/dto";
 import { DYNAMO_PROVIDER } from "src/providers/dynamo.provider";
 import { DynamoDBDocumentClient, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { user } from "src/data";
 
 @Injectable()
 export class EntitlementRepository {
@@ -13,21 +14,35 @@ export class EntitlementRepository {
   ) {}
 
   async getUserDefaultEntitlement(): Promise<entitlementDTO> {
-    return this.fetchByScope("USERDEFAULT", EntitlementScope.USER, "DEFAULT");
+    return await this.fetchByScope("USERDEFAULT", EntitlementScope.USER, "DEFAULT");
   }
 
   async getClientDefaultEntitlement(): Promise<entitlementDTO> {
-    return this.fetchByScope("CLIENTDEFAULT", EntitlementScope.CLIENT, "DEFAULT");
+    return await this.fetchByScope("CLIENTDEFAULT", EntitlementScope.CLIENT, "DEFAULT");
   }
 
-  async getUserUpdatedEntitlement(userId: string): Promise<entitlementDTO> {
+  async getUserUpdatedEntitlement(userId: string): Promise<entitlementDTO | undefined> {
     if (!userId) throw new BadRequestException("UserId is required");
-    return this.fetchByScope(`USER#${userId}`, EntitlementScope.USER, userId);
+    try {
+    return await this.fetchByScope(`USER#${userId}`, EntitlementScope.USER, userId);
+  } catch (err) {
+    if (err instanceof NotFoundException) {
+      return undefined;
+    }
+    throw err;
+  }
   }
 
-  async getClientUpdatedEntitlement(clientId: string): Promise<entitlementDTO> {
+  async getClientUpdatedEntitlement(clientId: string): Promise<entitlementDTO | undefined> {
     if (!clientId) throw new BadRequestException("ClientId is required");
-    return this.fetchByScope(`CLIENT#${clientId}`, EntitlementScope.CLIENT, clientId);
+    try {
+    return await this.fetchByScope(`CLIENT#${clientId}`, EntitlementScope.CLIENT, clientId);
+  } catch (err) {
+    if (err instanceof NotFoundException) {
+      return undefined;
+    }
+    throw err;
+  }
   }
 
   private async fetchByScope(

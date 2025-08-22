@@ -13,14 +13,18 @@ export class EntitlementService{
         }
         
         const clientId = user?.clientId;
-
         if (!clientId) {
+            console.log("Error")
             throw new BadRequestException(`User ${userId} does not belong to a client`);
         }
 
+        console.log("hello1")
         const userDefaultEntitlement = await this.entitlementRepo.getUserDefaultEntitlement();
+        console.log("hello2")
         const clientDefaultEntitlement = await  this.entitlementRepo.getClientDefaultEntitlement();
+        console.log("hello3")
         const modifiedUserEntitlement = await this.entitlementRepo.getUserUpdatedEntitlement(userId);
+        console.log(clientId)
         const modifiedClientEntitlement = await this.entitlementRepo.getClientUpdatedEntitlement(clientId);
 
         let res : any = {
@@ -32,8 +36,8 @@ export class EntitlementService{
         const allTabs = new Set([
             ...Object.keys(clientDefaultEntitlement.tabs ?? {}),
             ...Object.keys(userDefaultEntitlement.tabs ?? {}),
-            ...Object.keys(modifiedClientEntitlement.tabs ?? {}),
-            ...Object.keys(modifiedUserEntitlement.tabs ?? {}),
+            ...Object.keys(modifiedClientEntitlement?.tabs ?? {}),
+            ...Object.keys(modifiedUserEntitlement?.tabs ?? {}),
         ]);
 
         for(const docType of allTabs){
