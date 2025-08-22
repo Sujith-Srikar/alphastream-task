@@ -1,16 +1,43 @@
-import { Injectable } from "@nestjs/common"
-import {client} from "src/data"
-import { clientDTO } from "src/dto/dto"
+import { client } from 'src/data';
+import { Injectable, Inject } from "@nestjs/common";
+import { clientDTO } from "src/models/dto";
+import { DYNAMO_PROVIDER } from "src/providers/dynamo.provider";
+import { ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 @Injectable()
-export class ClientRepository{
-    private client = client;
+export class ClientRepository {
+  private readonly tableName = "Clients";
 
-    getAll() : clientDTO[]{
-        return this.client
-    }
+  constructor(
+    @Inject(DYNAMO_PROVIDER)
+    private readonly ddbDocClient: DynamoDBDocumentClient
+  ) {}
 
-    getClientById(id: string) : clientDTO | undefined {
-        return this.client.find(c => c.clientId == id)
+  async getAll(): Promise<clientDTO[]> {
+    try {
+      const res = await this.ddbDocClient.send(
+        new ScanCommand({ TableName: this.tableName })
+      );
+      return (res.Items as clientDTO[]) ?? [];
+    } catch (err) {
+      console.error("Failed to fetch all clients:", err);
+      throw err;
     }
+  }
+
+  async getClientById(clientId: string): Promise<clientDTO | undefined> {
+    try {
+      const res = await this.ddbDocClient.send(
+        new GetCommand({
+          TableName: this.tableName,
+          Key: { clientId },
+        })
+      );
+      return res.Item as clientDTO | undefined;
+    } catch (err) {
+      console.error(`Failed to fetch client with id ${clientId}:`, err);
+      throw err;
+    }
+  }
 }

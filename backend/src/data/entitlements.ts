@@ -1,4 +1,4 @@
-import { entitlementDTO } from "src/dto/dto";
+import { entitlementDTO } from "src/models/dto";
 
 let entitlements : entitlementDTO[] = [];
 

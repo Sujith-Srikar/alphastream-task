@@ -41,6 +41,12 @@ export enum EntitlementScope {
   CLIENT = "CLIENT",
 }
 
+export interface TabEntitlement {
+  columns: string[];
+  filters: Record<string, string>;
+}
+
+
 export class entitlementDTO{
 
     @IsEnum(EntitlementScope)

@@ -1,13 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { UserRepository, EntitlementRepository } from "src/repository";
+import { TabEntitlement } from "src/models/dto";
 
 @Injectable()
 export class EntitlementService{
     constructor(private readonly userRepo: UserRepository, private readonly entitlementRepo: EntitlementRepository){}
 
-    getEffectiveEntitlements(userId: string){
-        const clientId = this.userRepo.getUserById(userId)?.clientId;
-
+    async getEffectiveEntitlements(userId: string){
+        const user = await this.userRepo.getUserById(userId);
+        const clientId = user?.clientId;
+        
         if(!clientId)
             return "There is no user with the corresponding UserID"
 
@@ -22,7 +24,14 @@ export class EntitlementService{
             "tabs": {}
         }
 
-        for(const docType of Object.keys(clientDefaultEntitlement)){
+        const allTabs = new Set([
+            ...Object.keys(clientDefaultEntitlement ?? {}),
+            ...Object.keys(userDefaultEntitlement ?? {}),
+            ...Object.keys(modifiedClientEntitlement ?? {}),
+            ...Object.keys(modifiedUserEntitlement ?? {}),
+        ]);
+
+        for(const docType of allTabs){
             res.tabs[docType] = this.mergeEntitlement(
                 clientDefaultEntitlement[docType],
                 modifiedClientEntitlement?.[docType],
@@ -34,7 +43,7 @@ export class EntitlementService{
         return res;
     }
 
-    private mergeEntitlement(clientDefault: any, modifiedClientEntitlement: any, userDefault: any, modifiedUserEntitlement: any){
+    private mergeEntitlement(clientDefault: TabEntitlement, modifiedClientEntitlement: TabEntitlement, userDefault: TabEntitlement, modifiedUserEntitlement: TabEntitlement){
         let res= {...clientDefault};
 
         if(modifiedClientEntitlement){

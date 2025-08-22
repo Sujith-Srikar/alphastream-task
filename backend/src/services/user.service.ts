@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common"
-import { entitlementDTO } from "src/dto/dto";
+import { entitlementDTO } from "src/models/dto";
 import { UserRepository, EntitlementRepository } from "src/repository";
 
 @Injectable()

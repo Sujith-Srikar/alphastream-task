@@ -1,22 +1,22 @@
-import { userDTO } from "src/dto/dto";
+import { userDTO, UserType } from "../models/dto";
 
 let user : userDTO[] = [
   {
     "userId": "user1",
     "name": "Alice",
-    "type": "ADMIN",
+    "type": UserType.ADMIN,
     "clientId": "client1"
   },
   {
     "userId": "user2",
     "name": "Bob",
-    "type": "NORMAL",
+    "type": UserType.NORMAL,
     "clientId": "client1"
   },
   {
     "userId": "user3",
     "name": "Charlie",
-    "type": "NORMAL",
+    "type": UserType.NORMAL,
     "clientId": "client2"
   }
 ]
