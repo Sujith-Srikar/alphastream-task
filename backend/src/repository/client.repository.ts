@@ -1,5 +1,4 @@
-import { client } from 'src/data';
-import { Injectable, Inject } from "@nestjs/common";
+import { Injectable, Inject,InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { clientDTO } from "src/models/dto";
 import { DYNAMO_PROVIDER } from "src/providers/dynamo.provider";
 import { ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
@@ -22,7 +21,7 @@ export class ClientRepository {
       return (res.Items as clientDTO[]) ?? [];
     } catch (err) {
       console.error("Failed to fetch all clients:", err);
-      throw err;
+      throw new InternalServerErrorException("Unable to fetch clients");
     }
   }
 
@@ -37,7 +36,10 @@ export class ClientRepository {
       return res.Item as clientDTO | undefined;
     } catch (err) {
       console.error(`Failed to fetch client with id ${clientId}:`, err);
-      throw err;
+      if(err instanceof NotFoundException)
+        throw err
+
+      throw new InternalServerErrorException("Unable to fetch client")
     }
   }
 }

@@ -1,39 +1,51 @@
 project-root/
 ├── src/
-│   ├── controllers/
+│   ├── config/
+│   │   └── dynamo.config.ts          # DynamoDB connection configuration
+│   │
+│   ├── controllers/                  # All route controllers
 │   │   ├── entitlement.controller.ts
 │   │   ├── user.controller.ts
 │   │   ├── client.controller.ts 
-│   │   └── index.ts              # exports all controllers
+│   │   └── index.ts                  # central export for controllers
 │   │
-│   ├── services/
-│   │   ├── entitlement.service.ts
-│   │   ├── user.service.ts
-│   │   ├── client.service.ts 
-│   │   └── index.ts              # exports all services
-│   │
-│   ├── repositories/             
-│   │   ├── entitlement.repository.ts
-│   │   ├── user.repository.ts
-│   │   ├── client.repository.ts
-│   │   └── index.ts              # central export of repositories
-│   │
-│   ├── dto/
-│   │   └── dto.ts                # all DTOs and types in one file
-│   │
-│   ├── data/                     # mock in-memory data (to be replaced by DB later)
-│   │   ├── index.ts              # central export for mock data
+│   ├── data/                         # mock in-memory seed data (replace with DB later)
+│   │   ├── index.ts                  # central export
 │   │   ├── user.ts
 │   │   ├── client.ts
 │   │   ├── default.ts
 │   │   └── entitlements.ts
 │   │
-│   ├── app.module.ts
-│   └── main.ts
+│   ├── models/                       # schemas, DTOs, validation
+│   │   ├── dto.ts                    # DTOs and enums
+│   │   ├── schema.ts                 # DB schema definition
+│   │   └── seeder.ts                 # initial seed logic for DB
+│   │
+│   ├── providers/
+│   │   └── dynamo.provider.ts        # DynamoDB provider (DI)
+│   │
+│   ├── repository/                   # Data access layer
+│   │   ├── entitlement.repository.ts
+│   │   ├── user.repository.ts
+│   │   ├── client.repository.ts
+│   │   └── index.ts                  # export all repositories
+│   │
+│   ├── services/                     # Business logic layer
+│   │   ├── entitlement.service.ts
+│   │   ├── user.service.ts
+│   │   ├── client.service.ts 
+│   │   └── index.ts                  # export all services
+│   │
+│   ├── app.module.ts                 # root module
+│   └── main.ts                       # bootstrap entrypoint
+│
+├── test/
+│   ├── app.e2e-spec.ts               # end-to-end tests
+│   └── jest.e2e.json                 # test config
 │
 ├── package.json
 ├── tsconfig.json
-├── nest-cli.json                 # typical NestJS config
-├── .eslintrc.js                  # linting
-├── .prettierrc                   # formatting 
-└── README.md                     # project doc
+├── nest-cli.json                     # NestJS CLI config
+├── .eslintrc.js                      # lint rules
+├── .prettierrc                       # formatting rules
+└── README.md                         # project documentation

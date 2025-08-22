@@ -1,4 +1,4 @@
-import { Injectable, Inject } from "@nestjs/common";
+import { Injectable, Inject, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { userDTO } from "src/models/dto";
 import { DYNAMO_PROVIDER } from "src/providers/dynamo.provider";
 import { ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
@@ -20,12 +20,12 @@ export class UserRepository {
       );
       return (res.Items as userDTO[]) ?? [];
     } catch (err) {
-      console.error("Failed to fetch all users:", err);
-      throw err;
+      console.error(`[UserRepository] Failed to fetch all users from ${this.tableName}:`, err);
+      throw new InternalServerErrorException("Unable to fetch users");
     }
   }
 
-  async getUserById(userId: string): Promise<userDTO | undefined> {
+  async getUserById(userId: string): Promise<userDTO> {
     try {
       const res = await this.ddbDocClient.send(
         new GetCommand({
@@ -33,10 +33,18 @@ export class UserRepository {
           Key: { userId },
         })
       );
-      return res.Item as userDTO | undefined;
+
+      if (!res.Item) {
+        throw new NotFoundException(`User with id ${userId} not found`);
+      }
+
+      return res.Item as userDTO;
     } catch (err) {
-      console.error(`Failed to fetch user with id ${userId}:`, err);
-      throw err;
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      console.error(`[UserRepository] Failed to fetch user ${userId} from ${this.tableName}:`, err);
+      throw new InternalServerErrorException("Unable to fetch user");
     }
   }
 }

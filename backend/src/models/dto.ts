@@ -1,4 +1,5 @@
-import {IsArray, IsEnum, IsNotEmpty, IsObject, IsString} from "class-validator"
+import { IsEnum, IsNotEmpty, IsObject, IsString, ValidateNested} from "class-validator"
+import { Type } from "class-transformer";
 
 export enum UserType {
   NORMAL = "NORMAL",
@@ -47,21 +48,29 @@ export interface TabEntitlement {
 }
 
 
-export class entitlementDTO{
+export class TabEntitlementDTO {
+  @IsString({ each: true })
+  columns: string[];
 
-    @IsEnum(EntitlementScope)
-    scope: EntitlementScope;
+  @IsObject()
+  filters: Record<string, any>;
+}
 
-    @IsNotEmpty()
-    scopeId: string;
+export class entitlementDTO {
+  @IsEnum(EntitlementScope)
+  scope: EntitlementScope;
 
-    @IsEnum(TabType)
-    tab: TabType;
+  @IsNotEmpty()
+  scopeId: string;
 
-    @IsArray()
-    @IsString({each: true})
-    columns: string[];
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => TabEntitlementDTO)
+  tabs: Partial<Record<TabType, TabEntitlementDTO>>;
+}
 
-    @IsObject()
-    filters: Record<string, any>
+export interface EffectiveEntitlementDTO {
+  userId: string;
+  clientId: string;
+  tabs: Record<string, TabEntitlement>;
 }

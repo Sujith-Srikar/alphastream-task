@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ddbDocClient } from "../config/dynamo.config";
 import { schemas } from "./schema";
 import {

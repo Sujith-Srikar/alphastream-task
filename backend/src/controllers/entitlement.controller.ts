@@ -6,7 +6,7 @@ export class EntitlementController{
     constructor(private readonly entitlementservice: EntitlementService){}
 
     @Get(':id')
-    getEffectiveEntitlements(@Param('id') id: string){
-        return this.entitlementservice.getEffectiveEntitlements(id);
+    async getEffectiveEntitlements(@Param('id') id: string){
+        return await this.entitlementservice.getEffectiveEntitlements(id);
     }
 }

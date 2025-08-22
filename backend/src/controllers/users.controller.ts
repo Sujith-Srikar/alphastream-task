@@ -1,6 +1,6 @@
-import {Controller, Get, Param, Post, Body} from "@nestjs/common"
+import {Controller, Get, Param, Put, Body, ForbiddenException, Headers, NotFoundException} from "@nestjs/common"
 import { UserService } from "src/services/user.service"
-import { entitlementDTO } from "src/models/dto";
+import { entitlementDTO , UserType} from "src/models/dto";
 
 @Controller('user')
 export class UserController{
@@ -11,8 +11,12 @@ export class UserController{
         return this.userservice.getAllUsers();
     }
 
-    @Post(':id')
-    updateUserEntitlement(@Param('id') id: string, @Body() updatedData: entitlementDTO){
+    @Put(':id')
+    async updateUserEntitlement(@Param('id') id: string, @Body() updatedData: entitlementDTO, @Headers('x-requester-id') requestedId: string,){
+        const requester = await this.userservice.getUserById(requestedId);
+
+        if (requester.type !== UserType.ADMIN) throw new ForbiddenException("Only ADMINs can update entitlements");
+
         return this.userservice.updateUserEntitlement(id, updatedData);
     }
 }

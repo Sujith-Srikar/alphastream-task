@@ -1,5 +1,5 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { entitlementDTO, EntitlementScope } from "src/models/dto";
+import { Injectable, Inject, InternalServerErrorException, NotFoundException, BadRequestException, HttpException } from "@nestjs/common";
+import { entitlementDTO, EntitlementScope, TabEntitlementDTO, TabType } from "src/models/dto";
 import { DYNAMO_PROVIDER } from "src/providers/dynamo.provider";
 import { DynamoDBDocumentClient, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 
@@ -12,80 +12,113 @@ export class EntitlementRepository {
     private readonly ddbDocClient: DynamoDBDocumentClient
   ) {}
 
-  getUserDefaultEntitlement(): Promise<entitlementDTO[]> {
-    return this.fetchByScope("USERDEFAULT");
+  async getUserDefaultEntitlement(): Promise<entitlementDTO> {
+    return this.fetchByScope("USERDEFAULT", EntitlementScope.USER, "DEFAULT");
   }
 
-  getClientDefaultEntitlement(): Promise<entitlementDTO[]> {
-    return this.fetchByScope("CLIENTDEFAULT");
+  async getClientDefaultEntitlement(): Promise<entitlementDTO> {
+    return this.fetchByScope("CLIENTDEFAULT", EntitlementScope.CLIENT, "DEFAULT");
   }
 
-  getUserUpdatedEntitlement(userId: string): Promise<entitlementDTO[]> {
-    return this.fetchByScope(`USER#${userId}`);
+  async getUserUpdatedEntitlement(userId: string): Promise<entitlementDTO> {
+    if (!userId) throw new BadRequestException("UserId is required");
+    return this.fetchByScope(`USER#${userId}`, EntitlementScope.USER, userId);
   }
 
-  getClientUpdatedEntitlement(clientId: string): Promise<entitlementDTO[]> {
-    return this.fetchByScope(`CLIENT#${clientId}`);
+  async getClientUpdatedEntitlement(clientId: string): Promise<entitlementDTO> {
+    if (!clientId) throw new BadRequestException("ClientId is required");
+    return this.fetchByScope(`CLIENT#${clientId}`, EntitlementScope.CLIENT, clientId);
   }
 
-  private async fetchByScope(scopeKey: string): Promise<entitlementDTO[]> {
-    const res = await this.ddbDocClient.send(
-      new QueryCommand({
-        TableName: this.tableName,
-        KeyConditionExpression: "scopeKey = :s",
-        ExpressionAttributeValues: { ":s": scopeKey },
-      })
-    );
-
-    let scope: EntitlementScope;
-    let scopeId: string;
-
-    if (scopeKey.startsWith("USER#")) {
-      scope = EntitlementScope.USER;
-      scopeId = scopeKey.split("#")[1];
-    } else if (scopeKey.startsWith("CLIENT#")) {
-      scope = EntitlementScope.CLIENT;
-      scopeId = scopeKey.split("#")[1];
-    } else if (scopeKey === "USERDEFAULT") {
-      scope = EntitlementScope.USER;
-      scopeId = "DEFAULT";
-    } else {
-      scope = EntitlementScope.CLIENT;
-      scopeId = "DEFAULT";
-    }
-
-    return (
-      res.Items?.map(
-        (item) =>
-          ({
-            scope,
-            scopeId,
-            tab: item.tabKey,
-            columns: item.columns,
-            filters: item.filters ?? {},
-          } as entitlementDTO)
-      ) ?? []
-    );
-  }
-
-  async updateUserEntitlement(userId: string, updatedData: entitlementDTO) {
-    // TODO: implement with DynamoDB PutCommand
+  private async fetchByScope(
+    scopeKey: string,
+    scope: EntitlementScope,
+    scopeId: string
+  ): Promise<entitlementDTO> {
     try {
-      const item = {
-        scopeKey: `CLIENT#${userId}`,
-        tabKey: updatedData.tab,
-        ...updatedData
+      const res = await this.ddbDocClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          KeyConditionExpression: "scopeKey = :s",
+          ExpressionAttributeValues: { ":s": scopeKey },
+        })
+      );
 
+      if (!res.Items || res.Items.length === 0) {
+        throw new NotFoundException(`No entitlements found for scope: ${scopeKey}`);
       }
-      console.log(`Update entitlement for USER#${userId}`, updatedData);
+
+      const tabs: Partial<Record<TabType, TabEntitlementDTO>> = {};
+      res.Items.forEach((item) => {
+        tabs[item.tabKey as TabType] = {
+          columns: item.columns,
+          filters: item.filters ?? {},
+        };
+      });
+
+      return { scope, scopeId, tabs };
     } catch (error) {
-      
+      if (error instanceof HttpException) {
+      throw error;
     }
-    
+      console.error(`DynamoDB query failed for scopeKey=${scopeKey}`, error);
+      throw new InternalServerErrorException("Failed to fetch entitlement data");
+    }
   }
 
-  async updateClientEntitlement(clientId: string, updatedData: entitlementDTO) {
-    // TODO: implement with DynamoDB PutCommand
-    console.log(`Update entitlement for CLIENT#${clientId}`, updatedData);
+  async updateUserEntitlement(userId: string, updatedData: entitlementDTO): Promise<boolean> {
+    if (!userId) throw new BadRequestException("UserId is required");
+    if (!updatedData?.tabs || Object.keys(updatedData.tabs).length === 0) {
+      throw new BadRequestException("Updated data must include at least one tab");
+    }
+
+    try {
+      const scopeKey = `USER#${userId}`;
+      for (const [tabKey, tabValue] of Object.entries(updatedData.tabs)) {
+        await this.ddbDocClient.send(
+          new PutCommand({
+            TableName: this.tableName,
+            Item: {
+              scopeKey,
+              tabKey,
+              columns: tabValue.columns,
+              filters: tabValue.filters,
+            },
+          })
+        );
+      }
+      return true;
+    } catch (error) {
+      console.error(`Failed to update user entitlement for userId=${userId}`, error);
+      throw new InternalServerErrorException("Failed to update user entitlement");
+    }
+  }
+
+  async updateClientEntitlement(clientId: string, updatedData: entitlementDTO): Promise<boolean> {
+    if (!clientId) throw new BadRequestException("ClientId is required");
+    if (!updatedData?.tabs || Object.keys(updatedData.tabs).length === 0) {
+      throw new BadRequestException("Updated data must include at least one tab");
+    }
+
+    try {
+      const scopeKey = `CLIENT#${clientId}`;
+      for (const [tabKey, tabValue] of Object.entries(updatedData.tabs)) {
+        await this.ddbDocClient.send(
+          new PutCommand({
+            TableName: this.tableName,
+            Item: {
+              scopeKey,
+              tabKey,
+              columns: tabValue.columns,
+              filters: tabValue.filters,
+            },
+          })
+        );
+      }
+      return true;
+    } catch (error) {
+      console.error(`Failed to update client entitlement for clientId=${clientId}`, error);
+      throw new InternalServerErrorException("Failed to update client entitlement");
+    }
   }
 }

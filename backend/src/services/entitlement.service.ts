@@ -1,22 +1,27 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException,BadRequestException } from "@nestjs/common";
 import { UserRepository, EntitlementRepository } from "src/repository";
-import { TabEntitlement } from "src/models/dto";
+import { TabEntitlement, EffectiveEntitlementDTO } from "src/models/dto";
 
 @Injectable()
 export class EntitlementService{
     constructor(private readonly userRepo: UserRepository, private readonly entitlementRepo: EntitlementRepository){}
 
-    async getEffectiveEntitlements(userId: string){
+    async getEffectiveEntitlements(userId: string) : Promise<EffectiveEntitlementDTO>{
         const user = await this.userRepo.getUserById(userId);
-        const clientId = user?.clientId;
+        if (!user) {
+            throw new NotFoundException(`User with id ${userId} not found`);
+        }
         
-        if(!clientId)
-            return "There is no user with the corresponding UserID"
+        const clientId = user?.clientId;
 
-        const userDefaultEntitlement = this.entitlementRepo.getUserDefaultEntitlement();
-        const clientDefaultEntitlement = this.entitlementRepo.getClientDefaultEntitlement();
-        const modifiedUserEntitlement = this.entitlementRepo.getUserUpdatedEntitlement(userId);
-        const modifiedClientEntitlement = this.entitlementRepo.getClientUpdatedEntitlement(clientId);
+        if (!clientId) {
+            throw new BadRequestException(`User ${userId} does not belong to a client`);
+        }
+
+        const userDefaultEntitlement = await this.entitlementRepo.getUserDefaultEntitlement();
+        const clientDefaultEntitlement = await  this.entitlementRepo.getClientDefaultEntitlement();
+        const modifiedUserEntitlement = await this.entitlementRepo.getUserUpdatedEntitlement(userId);
+        const modifiedClientEntitlement = await this.entitlementRepo.getClientUpdatedEntitlement(clientId);
 
         let res : any = {
             "userId": userId,
@@ -25,21 +30,20 @@ export class EntitlementService{
         }
 
         const allTabs = new Set([
-            ...Object.keys(clientDefaultEntitlement ?? {}),
-            ...Object.keys(userDefaultEntitlement ?? {}),
-            ...Object.keys(modifiedClientEntitlement ?? {}),
-            ...Object.keys(modifiedUserEntitlement ?? {}),
+            ...Object.keys(clientDefaultEntitlement.tabs ?? {}),
+            ...Object.keys(userDefaultEntitlement.tabs ?? {}),
+            ...Object.keys(modifiedClientEntitlement.tabs ?? {}),
+            ...Object.keys(modifiedUserEntitlement.tabs ?? {}),
         ]);
 
         for(const docType of allTabs){
             res.tabs[docType] = this.mergeEntitlement(
-                clientDefaultEntitlement[docType],
-                modifiedClientEntitlement?.[docType],
-                userDefaultEntitlement[docType],
-                modifiedUserEntitlement?.[docType]
+                clientDefaultEntitlement.tabs[docType],
+                modifiedClientEntitlement?.tabs?.[docType],
+                userDefaultEntitlement.tabs[docType],
+                modifiedUserEntitlement?.tabs?.[docType]
             )
         }
-
         return res;
     }
 
@@ -66,7 +70,7 @@ export class EntitlementService{
                 filters: {...res.filters, ...modifiedUserEntitlement.filters}
             }
         }
-
+        
         return res;
     }
 }
