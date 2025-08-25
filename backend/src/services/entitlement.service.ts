@@ -18,13 +18,9 @@ export class EntitlementService{
             throw new BadRequestException(`User ${userId} does not belong to a client`);
         }
 
-        console.log("hello1")
         const userDefaultEntitlement = await this.entitlementRepo.getUserDefaultEntitlement();
-        console.log("hello2")
         const clientDefaultEntitlement = await  this.entitlementRepo.getClientDefaultEntitlement();
-        console.log("hello3")
         const modifiedUserEntitlement = await this.entitlementRepo.getUserUpdatedEntitlement(userId);
-        console.log(clientId)
         const modifiedClientEntitlement = await this.entitlementRepo.getClientUpdatedEntitlement(clientId);
 
         let res : any = {
