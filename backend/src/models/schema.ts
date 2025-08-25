@@ -17,7 +17,7 @@ export const schemas = [
 
   new CreateTableCommand({
     TableName: "Entitlements",
-    KeySchema: [
+    KeySchema: [  
       { AttributeName: "scopeKey", KeyType: "HASH" }, 
       { AttributeName: "tabKey", KeyType: "RANGE" }, 
     ],

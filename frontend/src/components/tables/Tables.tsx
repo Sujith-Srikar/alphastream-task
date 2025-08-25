@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useEntitlement } from "../../context/EntitlementContext";
+import { useEffectiveUserEntitlement } from "../../hooks/useApiHooks";
+import { useUser } from "../../context/UserContext";
 import NotAllowed from "./NotAllowed";
 import { type TablesProps } from "../../types/types";
 import { Table, Card, Select, Tag, DatePicker } from "antd";
@@ -9,7 +10,8 @@ import dayjs from "dayjs";
 const { RangePicker } = DatePicker;
 
 function Tables({ tabName }: TablesProps) {
-  const { entitlements } = useEntitlement();
+  const {userId} = useUser()
+  const {data: entitlements } = useEffectiveUserEntitlement(userId);
   const tabEntitlement = entitlements?.tabs?.[tabName];
 
   const [filters, setFilters] = useState<Record<string, any>>(
@@ -22,7 +24,7 @@ function Tables({ tabName }: TablesProps) {
 
   if (!tabEntitlement) return <NotAllowed />;
 
-  const columns = tabEntitlement.columns.map((col) => ({
+  const columns = tabEntitlement.columns.map((col: any) => ({
     title: col,
     dataIndex: col,
     key: col,

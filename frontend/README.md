@@ -1,11 +1,14 @@
 src/
 │
 ├── api/
-│   ├── user.ts              # API hooks
+│   ├── user.ts              # API fetching
+|
+├── hooks/
+│   ├── useApiHooks.ts      # API hooks
 │
 ├── components/
 │   ├── common/
-│   │   ├── ActionButton.tsx
+│   │   ├── ActionButton.tsx # Calls useUser context
 |   |
 │   ├── layout/
 │   │   ├── AppLayout.tsx
@@ -17,13 +20,11 @@ src/
 │   └── index.ts             # global export
 │
 ├── context/
-│   ├── UserContext.tsx
-│   ├── EntitlementContext.tsx
-│   └── index.ts             # global export
+│   ├── UserContext.tsx         # used to fetch all the users from backend api
 │
 ├── pages/
-│   ├── Dashboard.tsx
-│   ├── Home.tsx
+│   ├── Dashboard.tsx       # uses useEntitlement Context
+│   ├── Home.tsx            # uses useUsers custom hook for api, and actionbutton for navigation
 │   └── index.ts             # global export
 │
 ├── types/

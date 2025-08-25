@@ -1,5 +1,5 @@
 import { Space, Table, Tag, Card } from "antd";
-import { useUsers } from "../api/user";
+import { useUsers } from "../hooks/useApiHooks";
 import type { TableProps } from "antd";
 import { type User } from "../types/types";
 import { Link } from "react-router";
@@ -42,8 +42,8 @@ const userColumns: TableProps<User>["columns"] = [
     key: "action",
     render: (_, record) => (
       <Space size="middle">
-        <Link to="/dashboard">
-          <ActionButton user={record} />
+        <Link to={`/dashboard`}>
+            <ActionButton user={record} />
         </Link>
       </Space>
     ),
@@ -60,7 +60,7 @@ function Home() {
     <div className="flex justify-center items-center min-h-screen bg-gray-200">
       <Card
         className="shadow-md rounded-2xl w-4/5 bg-white"
-        bodyStyle={{ padding: "1.5rem" }}
+        // bodyStyle={{ padding: "1.5rem" }}
       >
         <h1 className="text-2xl font-semibold text-gray-800 mb-6">
           Select a User

@@ -1,7 +1,7 @@
 import {Routes, Route} from "react-router"
 import { UserProvider } from "./context/UserContext"
 import { Home, Dashboard } from "./pages"
-import { EntitlementContextProvider } from "./context/EntitlementContext"
+import { AdminDashboard } from "./components"
 
 function App() {
 
@@ -9,12 +9,11 @@ function App() {
     <div className="w-full h-screen">
       
       <UserProvider>
-        <EntitlementContextProvider>
         <Routes>
           <Route index element={<Home />}/>
           <Route path='/dashboard' element={<Dashboard />}/>
+          <Route path='/admin' element={<AdminDashboard />}/>
         </Routes>
-        </EntitlementContextProvider>
       </UserProvider>
     </div>
   )

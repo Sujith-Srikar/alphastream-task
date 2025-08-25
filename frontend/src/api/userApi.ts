@@ -1,6 +1,5 @@
 import axios from "axios";
 import {type User, type EffectiveUserEntitlementResponse} from "../types/types"
-import { useQuery } from "@tanstack/react-query";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -25,20 +24,3 @@ export const fetchEffectiveUserEntitlement = async (
     throw error;
   }
 };
-
-// Hooks
-export const useUsers = () => {
-  return useQuery<User[], Error>({
-    queryKey: ["users"],
-    queryFn: fetchAllUsers,
-  })
-}
-
-export const useEffectiveUserEntitlement = (userId: string | null) => {
-  return useQuery<EffectiveUserEntitlementResponse, Error>({
-    queryKey: ["entitlements", userId],
-    queryFn: () => fetchEffectiveUserEntitlement(userId!),
-    enabled: !!userId,
-    staleTime: Infinity
-  });
-}
