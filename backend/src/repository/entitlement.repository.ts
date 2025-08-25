@@ -2,7 +2,6 @@ import { Injectable, Inject, InternalServerErrorException, NotFoundException, Ba
 import { entitlementDTO, EntitlementScope, TabEntitlementDTO, TabType } from "src/models/dto";
 import { DYNAMO_PROVIDER } from "src/providers/dynamo.provider";
 import { DynamoDBDocumentClient, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
-import { user } from "src/data";
 
 @Injectable()
 export class EntitlementRepository {
